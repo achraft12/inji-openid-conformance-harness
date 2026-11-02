@@ -1,0 +1,14 @@
+#31 naming to docker.io/library/inji-conformance-proxy:local done
+#45 471.4 [INFO] Compiling 104 source files to /src/verify/verify-core/target/classes
+#45 588.7 [INFO] Compiling 13 source files to /src/verify/verify-service/target/classes
+#45 590.8 [INFO] BUILD SUCCESS
+#50 naming to docker.io/library/inji-conformance-verify:local
+#50 naming to docker.io/library/inji-conformance-verify:local 0.1s done
+#46 1026.0 [INFO] Compiling 4409 source files with javac [debug parameters release 21] to target/classes
+#46 1208.3 [INFO] BUILD SUCCESS
+#56 naming to docker.io/library/inji-conformance-oidf:local done
+#47 1231.0 [INFO] Compiling 104 source files to /src/verify/verify-core/target/classes
+#47 1235.1 [INFO] BUILD SUCCESS
+#59 92.15 [INFO] Compiling 12 source files to /src/certify/certify-integration-api/target/classes
+#59 183.1 [INFO] Compiling 86 source files to /src/certify/certify-core/target/classes
+target certify: failed to receive status: rpc error: code = Unavailable desc = error reading from server: EOF

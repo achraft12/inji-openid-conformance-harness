@@ -1,0 +1,7 @@
+{
+  "selector": "oid4vci-1_0-issuer-test-plan[fapi_profile=vci][client_auth_type=private_key_jwt]:oid4vci-1_0-issuer-metadata-test",
+  "oidf": {
+    "description": "Inji Certify release-1.0.x issuer metadata",
+    "vci": {"credential_issuer_url": "https://certify.conformance.test:8443"}
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "selector": "oid4vci-1_0-issuer-test-plan[fapi_profile=vci][client_auth_type=private_key_jwt][fapi_request_method=unsigned][sender_constrain=dpop][authorization_request_type=simple][grant_management=disabled][vci_grant_type=pre_authorization_code][vci_authorization_code_flow_variant=issuer_initiated][credential_format=sd_jwt_vc][vci_credential_encryption=plain]:oid4vci-1_0-issuer-happy-flow",
+  "oidf": {
+    "description": "Inji Certify preauthorized SD-JWT issuance capability assessment",
+    "vci": {
+      "credential_issuer_url": "https://certify.conformance.test:8443",
+      "authorization_server": "https://certify.conformance.test:8443",
+      "credential_configuration_id": "ConformanceSDJWT",
+      "credential_proof_type_hint": "jwt"
+    },
+    "client": {"client_id": "inji-conformance-wallet", "dpop_signing_alg": "ES256"}
+  },
+  "preauthorization": {
+    "credential_configuration_id": "ConformanceSDJWT",
+    "claims": {"fullName": "Conformance Test Holder"},
+    "expires_in": 600
+  }
+}

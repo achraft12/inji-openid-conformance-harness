@@ -1,0 +1,176 @@
+name: inji-conformance
+
+x-java-health: &java-health
+  interval: 10s
+  timeout: 5s
+  start_period: 60s
+  retries: 30
+
+services:
+  certify-db:
+    profiles: [certify]
+    image: postgres:15.10
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: local-certify-only
+      # Upstream SQL creates inji_certify itself.
+      POSTGRES_DB: postgres
+    volumes:
+      - certify-db:/var/lib/postgresql/data
+      - ./upstream/inji-certify/docker-compose/docker-compose-injistack/certify_init.sql:/docker-entrypoint-initdb.d/10-certify.sql:ro
+      - ./config/certify-conformance.sql:/docker-entrypoint-initdb.d/20-conformance.sql:ro
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U postgres -d inji_certify && psql -U postgres -d inji_certify -tAc \"SELECT 1 FROM certify.credential_config WHERE credential_config_key_id='ConformanceSDJWT'\" | grep -qx 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    networks: [conformance]
+
+  verify-db:
+    profiles: [verify]
+    image: postgres:13.18
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: local-verify-only
+      POSTGRES_DB: inji_verify
+    volumes:
+      - verify-db:/var/lib/postgresql/data
+      - ./upstream/inji-verify/docker-compose/db-init/init.sql:/docker-entrypoint-initdb.d/10-verify.sql:ro
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U postgres -d inji_verify && psql -U postgres -d inji_verify -tAc \"SELECT to_regclass('verify.authorization_request_details') IS NOT NULL\" | grep -qx t"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    networks: [conformance]
+
+  certify:
+    profiles: [certify]
+    build:
+      context: .
+      dockerfile: docker/certify.Dockerfile
+    image: inji-conformance-certify:local
+    environment:
+      JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=70
+    volumes:
+      - ./.runtime/certify.properties:/config/certify.properties:ro
+      - certify-keys:/keys
+    depends_on:
+      certify-db:
+        condition: service_healthy
+    healthcheck:
+      <<: *java-health
+      test: [CMD-SHELL, "curl --fail --silent --max-time 4 http://localhost:8090/v1/certify/actuator/health | grep -q '\"status\":\"UP\"'"]
+    networks: [conformance]
+
+  verify:
+    profiles: [verify]
+    build:
+      context: .
+      dockerfile: docker/verify.Dockerfile
+    image: inji-conformance-verify:local
+    environment:
+      DATABASE_HOST: verify-db
+      DATABASE_PORT: '5432'
+      DATABASE_NAME: inji_verify
+      DATABASE_SCHEMA: verify
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: local-verify-only
+      INJI_VP_SUBMISSION_BASE_URL: https://verify.conformance.test:8443/v1/verify
+      INJI_VERIFY_REDIRECT_URI: https://verify.conformance.test:8443/v1/verify
+      INJI_DID_VERIFY_URI: did:web:verify.conformance.test%3A8443:v1:verify
+      INJI_DID_VERIFY_PUBLIC_KEY_URI: did:web:verify.conformance.test%3A8443:v1:verify#key-0
+      INJI_KEYSTORE_FILE_PASS: mosip
+      JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=70
+    depends_on:
+      verify-db:
+        condition: service_healthy
+    healthcheck:
+      <<: *java-health
+      test: [CMD-SHELL, "curl --fail --silent --max-time 4 http://localhost:8080/v1/verify/actuator/health | grep -q '\"status\":\"UP\"'"]
+    networks: [conformance]
+
+  oidf-mongo:
+    image: mongo:6.0.13
+    volumes:
+      - oidf-mongo:/data/db
+    healthcheck:
+      test: [CMD, mongosh, --quiet, --eval, "if (db.adminCommand('ping').ok !== 1) { quit(1); }"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    networks: [conformance]
+
+  oidf:
+    build:
+      context: .
+      dockerfile: docker/oidf.Dockerfile
+    image: inji-conformance-oidf:local
+    environment:
+      JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=70
+    depends_on:
+      oidf-mongo:
+        condition: service_healthy
+    healthcheck:
+      <<: *java-health
+      test: [CMD, curl, --fail, --silent, --max-time, '4', 'http://localhost:8080/api/runner/available']
+    networks: [conformance]
+
+  tls-proxy:
+    build:
+      context: .
+      dockerfile: docker/proxy/Dockerfile
+    image: inji-conformance-proxy:local
+    ports:
+      - '127.0.0.1:8443:8443'
+    volumes:
+      - ./.runtime/tls/server.crt:/tls/server.crt:ro
+      - ./.runtime/tls/server.key:/tls/server.key:ro
+      - ./.runtime/tls/ca.crt:/tls/ca.crt:ro
+      - ./.runtime/vp_request_config.json:/config/vp_request_config.json:ro
+      - ./config/certify-sdjwt-type.json:/config/certify-sdjwt-type.json:ro
+    depends_on:
+      oidf:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, curl, --fail, --silent, --max-time, '4', --cacert, /tls/ca.crt, --resolve, 'oidf.conformance.test:8443:127.0.0.1', 'https://oidf.conformance.test:8443/api/runner/available']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    networks:
+      conformance:
+        aliases:
+          - certify.conformance.test
+          - verify.conformance.test
+          - oidf.conformance.test
+
+  certify-runner:
+    profiles: [tools]
+    build:
+      context: .
+      dockerfile: docker/runner.Dockerfile
+    image: inji-conformance-runner:local
+    environment:
+      - OIDF_API_TOKEN
+    volumes:
+      - ./.runtime/tls/ca.crt:/tls/ca.crt:ro
+      - ./results:/results
+    networks: [conformance]
+
+  probe:
+    profiles: [tools]
+    image: python:3.13.7-alpine
+    entrypoint: [python, /probe/probe.py]
+    volumes:
+      - ./scripts/probe.py:/probe/probe.py:ro
+      - ./.runtime/tls/ca.crt:/tls/ca.crt:ro
+    networks: [conformance]
+
+networks:
+  conformance:
+    driver: bridge
+
+volumes:
+  certify-db:
+  certify-keys:
+  verify-db:
+  oidf-mongo:

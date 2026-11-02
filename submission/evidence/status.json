@@ -1,0 +1,39 @@
+{
+  "kind": "recorded-environment-evidence",
+  "recorded_run": "20261101T204822.229878Z",
+  "snapshot_date": "2026-11-02",
+  "genuine_oidf_results": 0,
+  "full_stack_readiness_verified": false,
+  "mandatory_pipeline_complete": false,
+  "checks": [
+    {
+      "name": "verify source image",
+      "status": "BUILT"
+    },
+    {
+      "name": "oidf source image",
+      "status": "BUILT"
+    },
+    {
+      "name": "certify source image",
+      "status": "INCOMPLETE"
+    },
+    {
+      "name": "Verify isolated runtime",
+      "status": "UP_RECORDED"
+    },
+    {
+      "name": "certify database initialization",
+      "status": "PASS"
+    },
+    {
+      "name": "verify database initialization",
+      "status": "PASS"
+    },
+    {
+      "name": "TLS proxy configuration",
+      "status": "PASS"
+    }
+  ],
+  "limitation": "Docker connection closed during Certify service build"
+}

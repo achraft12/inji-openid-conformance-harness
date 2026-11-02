@@ -1,0 +1,7 @@
+          table_name           
+-------------------------------
+ authorization_request_details
+ vc_submission
+ vp_submission
+(3 rows)
+

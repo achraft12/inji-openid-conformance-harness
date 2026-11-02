@@ -1,0 +1,22 @@
+{
+  "inji-certify": {
+    "url": "https://github.com/inji/inji-certify.git",
+    "branch": "release-1.0.x",
+    "commit": "95fcf236917d05b0a9f246f3332d150618c72864"
+  },
+  "inji-verify": {
+    "url": "https://github.com/inji/inji-verify.git",
+    "branch": "release-1.0.x",
+    "commit": "5b7bead2ebf4dc72ac3cb93a1ab98e2e620b011f"
+  },
+  "mosip-functional-tests": {
+    "url": "https://github.com/mosip/mosip-functional-tests.git",
+    "branch": "master",
+    "commit": "085cfa94301738d901c5b70547dbf005cb762c2b"
+  },
+  "conformance-suite": {
+    "url": "https://github.com/openid-certification/conformance-suite.git",
+    "branch": "master",
+    "commit": "cab8f98ace4a0daced29a8203d61938cfb754d99"
+  }
+}

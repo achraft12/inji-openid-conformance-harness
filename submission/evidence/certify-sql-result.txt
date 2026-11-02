@@ -1,0 +1,5 @@
+ credential_config_key_id | credential_format | signature_algo 
+--------------------------+-------------------+----------------
+ ConformanceSDJWT         | dc+sd-jwt         | ES256
+(1 row)
+

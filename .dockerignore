@@ -1,0 +1,15 @@
+.git
+.venv
+results
+dist
+submission
+tests
+**/__pycache__
+upstream/mosip-functional-tests
+upstream/inji-certify/api-test
+upstream/inji-certify/docs
+upstream/inji-verify/api-test
+upstream/inji-verify/ui-test
+upstream/inji-verify/verify-ui
+upstream/inji-verify/docs
+.runtime/tls/*.key

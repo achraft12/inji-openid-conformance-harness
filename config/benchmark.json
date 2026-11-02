@@ -1,0 +1,8 @@
+{
+  "certify": {
+    "max_unexpected_failures": 0,
+    "warning_is_failure": false,
+    "review_is_failure": true,
+    "skip_is_failure": true
+  }
+}

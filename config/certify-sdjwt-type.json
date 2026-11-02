@@ -1,0 +1,5 @@
+{
+  "vct": "https://certify.conformance.test:8443/credentials/conformance",
+  "name": "Conformance SD-JWT",
+  "description": "Synthetic credential type for the isolated Inji conformance environment."
+}

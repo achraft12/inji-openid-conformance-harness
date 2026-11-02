@@ -1,0 +1,12 @@
+[
+  {
+    "component": "certify",
+    "status": "PASS",
+    "image": "postgres:15.10"
+  },
+  {
+    "component": "verify",
+    "status": "PASS",
+    "image": "postgres:13.18"
+  }
+]
